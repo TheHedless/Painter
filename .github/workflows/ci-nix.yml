@@ -1,4 +1,4 @@
-name: "CI Nix"
+name: "CI"
 on:
   # Run only when pushing to master branch, and making PRs
   push:

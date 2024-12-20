@@ -1,21 +1,20 @@
-use std::fs::File;
-use std::io::{BufWriter, Write};
-use eframe::{egui, emath};
 use eframe::emath::{Pos2, Vec2};
 use eframe::epaint::{Rect, Shape, Stroke};
-use egui::{ Color32, Grid, Sense};
+use eframe::{egui, emath};
 use egui::epaint::PathShape;
-use serde:: {Serialize, Deserialize};
+use egui::{Color32, Grid, Sense};
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
 fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "Painter",
         eframe::NativeOptions::default(),
-        Box::new(|_cc| {
-            Ok(Box::<MyApp>::default())
-        }),
+        Box::new(|_cc| Ok(Box::<MyApp>::default())),
     )
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MyApp {
     stroke: Stroke,
@@ -23,13 +22,18 @@ struct MyApp {
     fill: Color32,
     point_count: usize,
     filename: String,
-    io_status: String
+    io_status: String,
 }
+
 impl Default for MyApp {
     fn default() -> Self {
         Self {
             stroke: Stroke::new(1.0, Color32::from_rgb(100, 100, 100)),
-            node: Vec::from([Pos2::new(100.0, 100.0), Pos2::new(100.0, 200.0), Pos2::new(50.0, 150.0)]),
+            node: Vec::from([
+                Pos2::new(100.0, 100.0),
+                Pos2::new(100.0, 200.0),
+                Pos2::new(50.0, 150.0),
+            ]),
             fill: Color32::from_rgb(50, 50, 50),
             point_count: 3,
             filename: "".to_string(),
@@ -37,7 +41,6 @@ impl Default for MyApp {
         }
     }
 }
-
 
 impl MyApp {
     fn ui_controls(&mut self, ui: &mut egui::Ui) {
@@ -63,8 +66,7 @@ impl MyApp {
     }
     fn ui_canvas(&mut self, ui: &mut egui::Ui) {
         // define our canvas
-        let (response, painter) =
-            ui.allocate_painter(Vec2::new(300.0, 300.0), Sense::hover());
+        let (response, painter) = ui.allocate_painter(Vec2::new(300.0, 300.0), Sense::hover());
         // normalise coords to canvas instead of the window
         let to_screen = emath::RectTransform::from_to(
             Rect::from_min_size(Pos2::ZERO, response.rect.size()),
@@ -110,7 +112,11 @@ impl MyApp {
             })
             .collect();
 
-        painter.add(PathShape::convex_polygon(node_centers, self.fill, self.stroke));
+        painter.add(PathShape::convex_polygon(
+            node_centers,
+            self.fill,
+            self.stroke,
+        ));
         // convex_polygon tries to fill from the origin node [0]
         // concave shapes are not fully supported because of this
         painter.extend(node_circles);
@@ -133,15 +139,14 @@ impl MyApp {
                 //add save feature
                 //save node Vec, fill and line color
                 let file = File::create(self.filename.clone()).unwrap();
-                let mut writer= BufWriter::new(file);
+                let mut writer = BufWriter::new(file);
                 serde_json::to_writer(&writer, &self).expect("write to file failed");
                 writer.flush().expect("flush failed");
-                self.io_status="Saved successfully".to_string();
-
+                self.io_status = "Saved successfully".to_string();
             }
             if load_button.clicked() && named {
                 //add load feature
-                self.io_status="Load successfully".to_string();
+                self.io_status = "Load successfully".to_string();
             }
             ui.end_row();
             ui.label(&self.io_status)

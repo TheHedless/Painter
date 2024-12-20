@@ -183,9 +183,9 @@ impl MyApp {
                 let _ = writer.write_all(&binary);
                 if let Err(_e) = writer.flush() {
                     self.io_status = "Save failed".to_string();
+                } else {
+                    self.io_status = "Saved successfully".to_string();
                 }
-
-                self.io_status = "Saved successfully".to_string();
             }
             if load_button.clicked() && named {
                 // read the file

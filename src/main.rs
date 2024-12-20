@@ -52,16 +52,11 @@ impl MyApp {
         );
 
         binary.extend(self.stroke.width.to_be_bytes());
-        print!("\nSTROKE W: {:?}\n", self.stroke.width.to_be_bytes());
 
         for node in &self.node {
             binary.extend(node.x.to_be_bytes());
             binary.extend(node.y.to_be_bytes());
-            print!("\nNODEX: {:?}\n", node.x.to_be_bytes());
-            print!("\nNODEY: {:?}\n", node.y.to_be_bytes());
         }
-
-        print!("{:?}", binary);
 
         binary
     }
@@ -184,8 +179,7 @@ impl MyApp {
 
                 // write the binary to the file
                 let _ = writer.write_all(&binary);
-                if let Err(e) = writer.flush() {
-                    eprintln!("Error: {}", e);
+                if let Err(_e) = writer.flush() {
                     self.io_status = "Save failed".to_string();
                 }
 
@@ -204,7 +198,6 @@ impl MyApp {
                 let mut reader = std::io::BufReader::new(file);
                 let mut binary: Vec<u8> = Vec::new();
                 let _ = reader.read_to_end(&mut binary);
-                print!("{:?}", binary);
 
                 let point_count;
                 let fill;
@@ -270,8 +263,6 @@ impl MyApp {
                 self.fill = fill;
                 self.stroke = stroke;
                 self.node = node;
-
-                print!("{:?}", self.node);
 
                 self.io_status = "Loaded successfully".to_string();
             }

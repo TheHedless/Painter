@@ -27,11 +27,13 @@ struct MyApp {
 /*
     Saving and loading: Convert the struct into a binary format and write it to a file.
     The binary:
-    16 bits for the number of nodes
-    32 bits for the fill color
-    32 bits for the stroke color
-    32 bits for the stroke width
-    32 bits for each node
+    8 bytes for the point count
+    4 bytes for the fill color
+    4 bytes for the stroke color
+    4 bytes for the stroke width
+    8 bytes for each node
+    - 4 bytes for the x coordinate
+    - 4 bytes for the y coordinate
 */
 impl MyApp {
     pub fn to_binary(&self) -> Vec<u8> {

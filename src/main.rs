@@ -3,9 +3,9 @@ use std::io::{BufWriter, Write};
 use eframe::{egui, emath};
 use eframe::emath::{Pos2, Vec2};
 use eframe::epaint::{Rect, Shape, Stroke};
-use egui::{ Color32, Grid, Sense};
+use egui::{Color32, Grid, Sense};
 use egui::epaint::PathShape;
-use serde:: {Serialize, Deserialize};
+use serde::{Serialize, Deserialize};
 
 fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
@@ -16,14 +16,14 @@ fn main() -> Result<(), eframe::Error> {
         }),
     )
 }
-#[derive(Debug, Serialize, Deserialize)]
+//#[derive(Debug, Serialize, Deserialize)]
 struct MyApp {
     stroke: Stroke,
     node: Vec<Pos2>,
     fill: Color32,
     point_count: usize,
     filename: String,
-    io_status: String
+    io_status: String,
 }
 impl Default for MyApp {
     fn default() -> Self {
@@ -76,11 +76,10 @@ impl MyApp {
             .iter_mut()
             .enumerate()
             .take(self.point_count)
-            .map(|(i, point)| {
-                let mut point_in_screen = to_screen.transform_pos(*point);
+            .map(|(_i, point)| {
                 *point = to_screen.from().clamp(*point);
-                point_in_screen = to_screen.transform_pos(*point);
-                point_in_screen
+                to_screen.transform_pos(*point)
+
             })
             .collect();
         // dragable circles
@@ -121,27 +120,30 @@ impl MyApp {
             ui.label("Shape name:");
             ui.text_edit_singleline(&mut self.filename);
             ui.end_row();
+
             let save_button = ui.button("Save");
             let load_button = ui.button("Load");
+
             let mut named = false;
-            if self.filename == "" {
+            if self.filename.is_empty() {
                 named = false
             } else {
                 named = true
             }
-            if save_button.clicked() && named {
-                //add save feature
-                //save node Vec, fill and line color
-                let file = File::create(self.filename.clone()).unwrap();
-                let mut writer= BufWriter::new(file);
-                serde_json::to_writer(&writer, &self).expect("write to file failed");
-                writer.flush().expect("flush failed");
-                self.io_status="Saved successfully".to_string();
 
+            if !named { self.io_status = "".to_string(); }
+            if save_button.clicked() && named {
+                /*
+                                //add save feature
+                                let file = File::create(self.filename.clone()+".json").unwrap();
+                                let mut writer= BufWriter::new(file);
+                                serde_json::to_writer(&mut writer, &self).expect("write to file failed");
+                                writer.flush().expect("flush failed");*/
+                self.io_status = "Saved successfully".to_string();
             }
             if load_button.clicked() && named {
                 //add load feature
-                self.io_status="Load successfully".to_string();
+                self.io_status = "Load successfully".to_string();
             }
             ui.end_row();
             ui.label(&self.io_status)

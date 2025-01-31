@@ -9,10 +9,9 @@ use egui::{Color32, Grid, Sense};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
-use pollster::FutureExt as _;
 
 fn main() -> Result<(), eframe::Error> {
-    painter_db::painter_db::db_ping().block_on().expect("Ping failed");
+    painter_db::painter_db::db_ping().expect("Ping failed");
     eframe::run_native(
         "Painter",
         eframe::NativeOptions::default(),

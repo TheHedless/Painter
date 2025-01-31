@@ -1,11 +1,14 @@
+mod painter_db;
+
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{BufReader, BufWriter, Write};
 use eframe::{egui, emath};
 use eframe::emath::{Pos2, Vec2};
 use eframe::epaint::{Rect, Shape, Stroke};
 use egui::{Color32, Grid, Sense};
 use egui::epaint::PathShape;
 use serde::{Serialize, Deserialize};
+use crate::painter_db::painter_db::*;
 
 fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
@@ -21,6 +24,7 @@ struct DrawnShape {
     stroke: Stroke,
     node: Vec<Pos2>,
     fill: Color32,
+    #[serde(skip)]
     filename: String,
     #[serde(skip)]
     io_status: String,
@@ -72,10 +76,8 @@ impl DrawnShape {
         );
         let node_centers: Vec<Pos2> = self
             .node
-            .to_vec()
-            .iter_mut()
-            .enumerate()
-            .map(|(_i, point)| {
+            .iter()
+            .map(|point| {
                 to_screen.transform_pos(to_screen.from().clamp(*point))
             })
             .collect();
@@ -133,14 +135,23 @@ impl DrawnShape {
                 self.io_status = "Saved successfully".to_string();
             }
             if load_button.clicked() && named {
-                //add load feature
-                self.io_status = "Load successfully".to_string();
+                if File::open(self.filename.clone() + ".json").is_err(){
+                    self.io_status = "Could not open file".to_string();
+                }
+                else {
+                    let file = File::open(self.filename.clone() + ".json").unwrap();
+                    let reader = BufReader::new(file);
+                    *self=serde_json::from_reader(reader).unwrap();
+                    self.io_status = "Load successfully".to_string();
+                }
             }
             ui.end_row();
-            ui.label(&self.io_status)
+            ui.label(&self.io_status);
+            ui.end_row();
         });
     }
 }
+
 impl eframe::App for DrawnShape {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {

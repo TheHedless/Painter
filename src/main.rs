@@ -1,16 +1,18 @@
 mod painter_db;
 
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Write};
-use eframe::{egui, emath};
+use chrono::Local;
 use eframe::emath::{Pos2, Vec2};
 use eframe::epaint::{Rect, Shape, Stroke};
-use egui::{Color32, Grid, Sense};
+use eframe::{egui, emath};
 use egui::epaint::PathShape;
-use serde::{Serialize, Deserialize};
-use crate::painter_db::painter_db::*;
+use egui::{Color32, Grid, Sense};
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Write};
+use pollster::FutureExt as _;
 
 fn main() -> Result<(), eframe::Error> {
+    painter_db::painter_db::db_ping().block_on().expect("Ping failed");
     eframe::run_native(
         "Painter",
         eframe::NativeOptions::default(),
@@ -28,6 +30,8 @@ struct DrawnShape {
     filename: String,
     #[serde(skip)]
     io_status: String,
+    author: String,
+    creation_time: chrono::DateTime<Local>,
 }
 impl Default for DrawnShape {
     fn default() -> Self {
@@ -40,6 +44,8 @@ impl Default for DrawnShape {
             fill: Color32::from_rgb(50, 50, 50),
             filename: "".to_string(),
             io_status: "".to_string(),
+            author: "".to_string(),
+            creation_time: Local::now(),
         }
     }
 }
@@ -135,19 +141,20 @@ impl DrawnShape {
                 self.io_status = "Saved successfully".to_string();
             }
             if load_button.clicked() && named {
-                if File::open(self.filename.clone() + ".json").is_err(){
+                if File::open(self.filename.clone() + ".json").is_err() {
                     self.io_status = "Could not open file".to_string();
-                }
-                else {
+                } else {
                     let file = File::open(self.filename.clone() + ".json").unwrap();
                     let reader = BufReader::new(file);
-                    *self=serde_json::from_reader(reader).unwrap();
+                    *self = serde_json::from_reader(reader).unwrap();
                     self.io_status = "Load successfully".to_string();
                 }
             }
             ui.end_row();
             ui.label(&self.io_status);
             ui.end_row();
+            ui.label("Author:");
+            ui.text_edit_singleline(&mut self.author);
         });
     }
 }

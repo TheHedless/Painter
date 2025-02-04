@@ -1,17 +1,17 @@
 mod painter_db;
+mod painter_io;
+mod drawn_shape;
 
-use chrono::Local;
 use eframe::emath::{Pos2, Vec2};
 use eframe::epaint::{Rect, Shape, Stroke};
 use eframe::{egui, emath};
 use egui::epaint::PathShape;
 use egui::{Color32, Grid, Sense};
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Write};
+use crate::drawn_shape::DrawnShape::DrawnShape;
 
 fn main() -> Result<(), eframe::Error> {
-    painter_db::painter_db::db_ping().expect("Ping failed");
+    //painter_db::painter_db::db_ping().expect("Ping failed");
+
     eframe::run_native(
         "Painter",
         eframe::NativeOptions::default(),
@@ -20,35 +20,20 @@ fn main() -> Result<(), eframe::Error> {
         }),
     )
 }
-#[derive(Debug, Serialize, Deserialize)]
-struct DrawnShape {
-    stroke: Stroke,
-    node: Vec<Pos2>,
-    fill: Color32,
-    #[serde(skip)]
-    filename: String,
-    #[serde(skip)]
-    io_status: String,
-    author: String,
-    creation_time: chrono::DateTime<Local>,
-}
-impl Default for DrawnShape {
-    fn default() -> Self {
-        Self {
-            stroke: Stroke::new(1.0, Color32::from_rgb(100, 100, 100)),
-            node: Vec::from([
-                Pos2::new(100.0, 100.0),
-                Pos2::new(100.0, 200.0),
-                Pos2::new(50.0, 150.0)]),
-            fill: Color32::from_rgb(50, 50, 50),
-            filename: "".to_string(),
-            io_status: "".to_string(),
-            author: "".to_string(),
-            creation_time: Local::now(),
+impl Clone for DrawnShape {
+    fn clone(&self) -> Self {
+        DrawnShape {
+            stroke: self.stroke,
+            node: self.node.clone(),
+            fill: self.fill,
+            filename: self.filename.clone(),
+            io_status: self.io_status.clone(),
+            author: self.author.clone(),
+            creation_time: self.creation_time.clone(),
+            _id: self._id.clone(),
         }
     }
 }
-
 
 impl DrawnShape {
     fn ui_controls(&mut self, ui: &mut egui::Ui) {
@@ -130,25 +115,11 @@ impl DrawnShape {
             } else {
                 named = true
             }
-
             if !named { self.io_status = "".to_string(); }
-            if save_button.clicked() && named {
-                let file = File::create(self.filename.clone() + ".json").unwrap();
-                let mut writer = BufWriter::new(file);
-                serde_json::to_writer(&mut writer, &self).expect("write to file failed");
-                writer.flush().expect("flush failed");
-                self.io_status = "Saved successfully".to_string();
-            }
-            if load_button.clicked() && named {
-                if File::open(self.filename.clone() + ".json").is_err() {
-                    self.io_status = "Could not open file".to_string();
-                } else {
-                    let file = File::open(self.filename.clone() + ".json").unwrap();
-                    let reader = BufReader::new(file);
-                    *self = serde_json::from_reader(reader).unwrap();
-                    self.io_status = "Load successfully".to_string();
-                }
-            }
+
+            if save_button.clicked() && named { self.io_status = painter_io::file_io::save(self) }
+            if load_button.clicked() && named { *self = painter_io::file_io::load(self.clone()) }
+
             ui.end_row();
             ui.label(&self.io_status);
             ui.end_row();

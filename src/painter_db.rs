@@ -1,5 +1,5 @@
 pub mod painter_db {
-    use mongodb::bson::doc;
+    use mongodb::bson::{doc, Bson};
     use mongodb::options::{ClientOptions, ServerApi, ServerApiVersion};
     use mongodb::sync::Client;
     use std::env;
@@ -19,7 +19,13 @@ pub mod painter_db {
             .database("admin")
             .run_command(doc! {"ping": 1})
             .run().expect("Ping failed");
-        println!("Pinged your deployment. You successfully connected to MongoDB!");
+        let test_query: Option<Bson> = client.
+            database("egui_art").
+            collection("art").
+            find_one(doc! {"author":"Joseph Joestar"})
+            .run()
+            .expect("Test failed");
+        println!("{:#?}", test_query.unwrap());
         Ok(())
     }
 }

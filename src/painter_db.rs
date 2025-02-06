@@ -4,6 +4,7 @@ pub mod painter_db {
     use mongodb::sync::Client;
     use std::env;
     use dotenv::dotenv;
+    use crate::painter_io;
 
     pub fn db_ping() -> mongodb::error::Result<()> {
         dotenv().ok();
@@ -19,13 +20,17 @@ pub mod painter_db {
             .database("admin")
             .run_command(doc! {"ping": 1})
             .run().expect("Ping failed");
-        let test_query: Option<Bson> = client.
-            database("egui_art").
-            collection("art").
-            find_one(doc! {"author":"Joseph Joestar"})
+        let test_query: Option<Bson> = client
+            .database("egui_art")
+            .collection("art")
+            .find_one(doc! {"author":"Joseph Joestar"})
             .run()
             .expect("Test failed");
-        println!("{:#?}", test_query.unwrap());
+        if test_query.is_some() {
+            println!("{:#?}", test_query.unwrap());
+        } else {
+            println!("No results found");
+        }
         Ok(())
     }
 }

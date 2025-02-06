@@ -4,7 +4,6 @@ pub mod painter_db {
     use mongodb::sync::Client;
     use std::env;
     use dotenv::dotenv;
-    use crate::painter_io;
 
     pub fn db_ping() -> mongodb::error::Result<()> {
         dotenv().ok();

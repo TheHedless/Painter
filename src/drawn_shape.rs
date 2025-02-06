@@ -1,11 +1,13 @@
 pub(crate) mod drawn_shape_mod {
-    use crate::painter_io;
+    use std::fs::File;
+    use std::io::{BufReader, BufWriter, Write};
     use chrono::Local;
     use eframe::emath;
     use serde::{Deserialize, Serialize};
     use eframe::emath::{Pos2, Vec2};
     use eframe::epaint::{Rect, Shape, Stroke, PathShape};
     use egui::{Color32, Grid, Sense};
+    use crate::painter_io::file_io::IO;
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct DrawingShapes {
@@ -29,7 +31,7 @@ pub(crate) mod drawn_shape_mod {
                 fill: Color32::from_rgb(50, 50, 50),
                 _id: "".to_string(),
                 io_status: "".to_string(),
-                author: "".to_string(),
+                author: "N/A".to_string(),
                 creation_time: Local::now(),
             }
         }
@@ -119,7 +121,7 @@ pub(crate) mod drawn_shape_mod {
         pub(crate) fn ui_io(&mut self, ui: &mut egui::Ui) {
             //IO buttons
 
-            ui.horizontal(|ui|{
+            ui.horizontal(|ui| {
                 ui.add(
                     egui::TextEdit::singleline(&mut self._id)
                         .hint_text("Shape name")
@@ -131,7 +133,7 @@ pub(crate) mod drawn_shape_mod {
                         .desired_width(100.)
                 );
             });
-            ui.horizontal(|ui|{
+            ui.horizontal(|ui| {
                 let save_button = ui.button("Save");
                 let load_button = ui.button("Load");
 
@@ -144,13 +146,29 @@ pub(crate) mod drawn_shape_mod {
                 if !named { self.io_status = "".to_string(); }
 
                 if save_button.clicked() && named {
-                    self.io_status = painter_io::file_io::save(self)
+                    IO::save(self);
                 }
                 if load_button.clicked() && named {
-                    *self = painter_io::file_io::load(self.clone())
+                    IO::load(self);
                 }
             });
             ui.label(&self.io_status);
+        }
+    }
+    impl IO for DrawingShapes {
+        fn save(&mut self) {
+            let file = File::create(self._id.clone() + ".json").unwrap();
+            let mut writer = BufWriter::new(file);
+            serde_json::to_writer(&mut writer, &self).expect("write to file failed");
+            writer.flush().expect("flush failed");
+            self.io_status = "Saved successfully".to_string();
+        }
+        fn load(&mut self) {
+            if let Ok(file) = File::open(self._id.clone() + ".json") {
+                let reader = BufReader::new(file);
+                *self = serde_json::from_reader(reader).unwrap();
+                self.io_status = "Load successfully".to_string();
+            }
         }
     }
 }

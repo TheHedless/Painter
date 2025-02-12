@@ -1,4 +1,5 @@
 pub(crate) mod drawn_shape_mod {
+    use std::fmt::Debug;
     use std::fs::File;
     use std::io::{BufReader, BufWriter, Write};
     use chrono::Local;
@@ -7,6 +8,7 @@ pub(crate) mod drawn_shape_mod {
     use eframe::emath::{Pos2, Vec2};
     use eframe::epaint::{Rect, Shape, Stroke, PathShape};
     use egui::{Color32, Grid, Sense};
+    use crate::gallery_view::gallery::Gallery;
     use crate::painter_io::file_io::IO;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -18,7 +20,9 @@ pub(crate) mod drawn_shape_mod {
         #[serde(skip)]
         pub io_status: String,
         pub author: String,
-        pub creation_time: chrono::DateTime<Local>,
+        pub creation_time: String,
+        #[serde(skip)]
+        pub window: Vec<Gallery>,
     }
     impl Default for DrawingShapes {
         fn default() -> Self {
@@ -31,8 +35,9 @@ pub(crate) mod drawn_shape_mod {
                 fill: Color32::from_rgb(50, 50, 50),
                 _id: "".to_string(),
                 io_status: "".to_string(),
-                author: "N/A".to_string(),
-                creation_time: Local::now(),
+                author: "".to_string(),
+                creation_time: Local::now().format("%Y.%m.%d").to_string(),
+                window: vec![],
             }
         }
     }
@@ -46,6 +51,7 @@ pub(crate) mod drawn_shape_mod {
                 io_status: self.io_status.clone(),
                 author: self.author.clone(),
                 creation_time: self.creation_time.clone(),
+                window: self.window.clone(),
             }
         }
     }
@@ -60,17 +66,21 @@ pub(crate) mod drawn_shape_mod {
                 ui.add(&mut self.stroke);
             });
             ui.horizontal(|ui| {
-                let add_element = ui.button("Add Node");
-                let remove_element = ui.button("Remove Node");
-                let enter_gallery = ui.button("Enter Gallery");
-                if add_element.clicked() {
+                if ui.button("Add Node").clicked() { //add_element.clicked() {
                     self.node.push(Pos2::new(50.0, 100.0));
                 }
-                if remove_element.clicked() {
+                if ui.button("Remove Node").clicked() {
                     self.node.pop();
                 }
-                if enter_gallery.clicked() {
-                    self.io_status = "Gallery".to_string();
+                if ui.button("Open/Close Gallery").clicked() {
+                    if self.window.is_empty() {
+                        self.window.push(Gallery::default())
+                    } else {
+                        self.window.pop();
+                    }
+                }
+                for window in self.window.iter() {
+                    window.show(ui)
                 }
             });
         }
@@ -134,9 +144,6 @@ pub(crate) mod drawn_shape_mod {
                 );
             });
             ui.horizontal(|ui| {
-                let save_button = ui.button("Save");
-                let load_button = ui.button("Load");
-
                 let named;
                 if self._id.is_empty() {
                     named = false
@@ -145,10 +152,10 @@ pub(crate) mod drawn_shape_mod {
                 }
                 if !named { self.io_status = "".to_string(); }
 
-                if save_button.clicked() && named {
+                if ui.button("Save").clicked() && named {
                     IO::save(self);
                 }
-                if load_button.clicked() && named {
+                if ui.button("Load").clicked() && named {
                     IO::load(self);
                 }
             });
@@ -157,6 +164,7 @@ pub(crate) mod drawn_shape_mod {
     }
     impl IO for DrawingShapes {
         fn save(&mut self) {
+            if self.author.is_empty() { self.author = "N/A".to_string() }
             let file = File::create(self._id.clone() + ".json").unwrap();
             let mut writer = BufWriter::new(file);
             serde_json::to_writer(&mut writer, &self).expect("write to file failed");

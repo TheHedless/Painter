@@ -1,12 +1,13 @@
 mod painter_db;
 mod painter_io;
 mod drawn_shape;
+mod gallery_view;
 
 use eframe::egui;
 use crate::drawn_shape::drawn_shape_mod::DrawingShapes;
 
-fn main()-> Result<(), eframe::Error> {
-    painter_db::painter_db::db_ping().expect("Ping failed");
+fn main() -> Result<(), eframe::Error> {
+    //painter_db::painter_db::db_ping().expect("Ping failed");
     eframe::run_native(
         "Painter",
         eframe::NativeOptions::default(),

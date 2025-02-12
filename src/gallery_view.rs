@@ -7,8 +7,8 @@ pub mod gallery {
     }
 
     impl Gallery {
-        pub fn show(&self, ui: &mut egui::Ui) {
-            Window::new("Gallery").show(ui.ctx(), |ui| {
+        pub fn show(&mut self, ui: &mut egui::Ui) {
+            Window::new("Gallery").open(&mut self.is_open).show(ui.ctx(), |ui| {
                 ui.label("Hello World!");
             });
         }
@@ -17,7 +17,7 @@ pub mod gallery {
     impl Default for Gallery {
         fn default() -> Self {
             Self {
-                is_open: false
+                is_open: true
             }
         }
     }

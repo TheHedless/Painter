@@ -79,7 +79,7 @@ pub(crate) mod drawn_shape_mod {
                         self.window.pop();
                     }
                 }
-                for window in self.window.iter() {
+                for window in self.window.iter_mut() {
                     window.show(ui)
                 }
             });

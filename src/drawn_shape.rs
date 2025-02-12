@@ -12,7 +12,7 @@ pub(crate) mod drawn_shape_mod {
     use crate::painter_io::file_io::IO;
 
     #[derive(Debug, Serialize, Deserialize)]
-    pub struct DrawingShapes {
+    pub struct ShapeDrawWindow {
         pub stroke: Stroke,
         pub node: Vec<Pos2>,
         pub fill: Color32,
@@ -24,7 +24,7 @@ pub(crate) mod drawn_shape_mod {
         #[serde(skip)]
         pub window: Vec<Gallery>,
     }
-    impl Default for DrawingShapes {
+    impl Default for ShapeDrawWindow {
         fn default() -> Self {
             Self {
                 stroke: Stroke::new(1.0, Color32::from_rgb(100, 100, 100)),
@@ -41,9 +41,9 @@ pub(crate) mod drawn_shape_mod {
             }
         }
     }
-    impl Clone for DrawingShapes {
+    impl Clone for ShapeDrawWindow {
         fn clone(&self) -> Self {
-            DrawingShapes {
+            ShapeDrawWindow {
                 stroke: self.stroke,
                 node: self.node.clone(),
                 fill: self.fill,
@@ -55,7 +55,7 @@ pub(crate) mod drawn_shape_mod {
             }
         }
     }
-    impl DrawingShapes {
+    impl ShapeDrawWindow {
         pub(crate) fn ui_controls(&mut self, ui: &mut egui::Ui) {
             //control options like line colors
             Grid::new("colors").spacing([5.0, 10.0]).show(ui, |ui| {
@@ -162,7 +162,7 @@ pub(crate) mod drawn_shape_mod {
             ui.label(&self.io_status);
         }
     }
-    impl IO for DrawingShapes {
+    impl IO for ShapeDrawWindow {
         fn save(&mut self) {
             if self.author.is_empty() { self.author = "N/A".to_string() }
             let file = File::create(self._id.clone() + ".json").unwrap();

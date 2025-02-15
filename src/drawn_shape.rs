@@ -8,21 +8,18 @@ pub(crate) mod drawn_shape_mod {
     use eframe::emath::{Pos2, Vec2};
     use eframe::epaint::{Rect, Shape, Stroke, PathShape};
     use egui::{Color32, Grid, Sense};
-    use crate::gallery_view::gallery::Gallery;
     use crate::painter_io::file_io::IO;
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct DrawingShapes {
+        pub _id: String, //is the filename, but is chosen to work in the database as the id
         pub stroke: Stroke,
         pub node: Vec<Pos2>,
         pub fill: Color32,
-        pub _id: String, //is the filename, but is chosen to work in the database as the id
         #[serde(skip)]
         pub io_status: String,
         pub author: String,
         pub creation_time: String,
-        #[serde(skip)]
-        pub window: Vec<Gallery>,
     }
     impl Default for DrawingShapes {
         fn default() -> Self {
@@ -37,7 +34,6 @@ pub(crate) mod drawn_shape_mod {
                 io_status: "".to_string(),
                 author: "".to_string(),
                 creation_time: Local::now().format("%Y.%m.%d").to_string(),
-                window: vec![],
             }
         }
     }
@@ -51,7 +47,6 @@ pub(crate) mod drawn_shape_mod {
                 io_status: self.io_status.clone(),
                 author: self.author.clone(),
                 creation_time: self.creation_time.clone(),
-                window: self.window.clone(),
             }
         }
     }
@@ -72,18 +67,9 @@ pub(crate) mod drawn_shape_mod {
                 if ui.button("Remove Node").clicked() {
                     self.node.pop();
                 }
-                if ui.button("Open/Close Gallery").clicked() {
-                    if self.window.is_empty() {
-                        self.window.push(Gallery::default())
-                    } else {
-                        self.window.pop();
-                    }
-                }
-                for window in self.window.iter_mut() {
-                    window.show(ui)
-                }
             });
         }
+
         pub(crate) fn ui_canvas(&mut self, ui: &mut egui::Ui) {
             // define our canvas
             let (response, painter) =
@@ -128,6 +114,7 @@ pub(crate) mod drawn_shape_mod {
             // concave shapes are not fully supported because of this
             painter.extend(node_circles);
         }
+
         pub(crate) fn ui_io(&mut self, ui: &mut egui::Ui) {
             //IO buttons
 
@@ -162,6 +149,7 @@ pub(crate) mod drawn_shape_mod {
             ui.label(&self.io_status);
         }
     }
+
     impl IO for DrawingShapes {
         fn save(&mut self) {
             if self.author.is_empty() { self.author = "N/A".to_string() }

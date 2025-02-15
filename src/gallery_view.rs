@@ -1,31 +1,67 @@
 pub mod gallery {
-    use egui::Window;
+    use egui::Grid;
+    use crate::drawn_shape::drawn_shape_mod::DrawingShapes;
+    use crate::painter_db::painter_db::db_query;
 
     #[derive(Debug)]
     pub struct Gallery {
-        pub(crate) is_open: bool,
-    }
-
-    impl Gallery {
-        pub fn show(&mut self, ui: &mut egui::Ui) {
-            Window::new("Gallery").open(&mut self.is_open).show(ui.ctx(), |ui| {
-                ui.label("Hello World!");
-            });
-        }
+        pub(crate) drawing_vec: Vec<DrawingShapes>,
+        pub(crate) query_settings: Vec<String>,
     }
 
     impl Default for Gallery {
         fn default() -> Self {
             Self {
-                is_open: true
+                drawing_vec: Vec::new(),
+                query_settings: vec!["".to_string(), "".to_string(), "".to_string()],
             }
         }
     }
     impl Clone for Gallery {
         fn clone(&self) -> Self {
             Self {
-                is_open: self.is_open
+                drawing_vec: self.drawing_vec.clone(),
+                query_settings: self.query_settings.clone(),
             }
+        }
+    }
+    // reminder for query_settings
+    //      query_settings[1] _id: String
+    //      query_settings[2] author: String
+    //      query_settings[3] creation_time: String
+
+    impl Gallery {
+        pub fn show(&mut self, ui: &mut egui::Ui) {
+            Grid::new("gallery_scenes").spacing([5.0, 10.0]).show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::TextEdit::singleline(&mut self.query_settings[0])
+                            .hint_text("Filename")
+                            .desired_width(100.)
+                    );
+                    ui.add(
+                        egui::TextEdit::singleline(&mut self.query_settings[1])
+                            .hint_text("Author name")
+                            .desired_width(100.)
+                    );
+                    ui.add(
+                        egui::TextEdit::singleline(&mut self.query_settings[2])
+                            .hint_text("Creation date YYYY.mm.dd format")
+                            .desired_width(200.)
+                    );
+                    if ui.button("Query").clicked() {
+                        self.drawing_vec =
+                            db_query(self.query_settings[0].clone(),
+                                     self.query_settings[1].clone(),
+                                     self.query_settings[2].clone());
+                    }
+                })
+            });
+            ui.horizontal_wrapped(|ui| {
+                for mut item in self.drawing_vec.iter() {
+                    DrawingShapes::ui_canvas(&mut item.clone(), ui)
+                }
+            });
         }
     }
 }

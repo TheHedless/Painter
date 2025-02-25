@@ -61,7 +61,7 @@ pub(crate) mod drawn_shape_mod {
                 ui.add(&mut self.stroke);
             });
             ui.horizontal(|ui| {
-                if ui.button("Add Node").clicked() { //add_element.clicked() {
+                if ui.button("Add Node").clicked() {
                     self.node.push(Pos2::new(50.0, 100.0));
                 }
                 if ui.button("Remove Node").clicked() {
@@ -70,10 +70,10 @@ pub(crate) mod drawn_shape_mod {
             });
         }
 
-        pub(crate) fn ui_canvas(&mut self, ui: &mut egui::Ui) {
+        pub(crate) fn ui_canvas(&mut self, ui: &mut egui::Ui, painter_dim: f32) {
             // define our canvas
             let (response, painter) =
-                ui.allocate_painter(Vec2::new(300.0, 300.0), Sense::hover());
+                ui.allocate_painter(Vec2::new(painter_dim, painter_dim), Sense::hover());
             // normalise coords to canvas instead of the window
             let to_screen = emath::RectTransform::from_to(
                 Rect::from_min_size(Pos2::ZERO, response.rect.size()),

@@ -7,6 +7,7 @@ pub mod gallery {
     pub struct Gallery {
         pub(crate) drawing_vec: Vec<DrawingShapes>,
         pub(crate) query_settings: Vec<String>,
+        painter_dim: f32,
     }
 
     impl Default for Gallery {
@@ -14,6 +15,7 @@ pub mod gallery {
             Self {
                 drawing_vec: Vec::new(),
                 query_settings: vec!["".to_string(), "".to_string(), "".to_string()],
+                painter_dim: 150.0,
             }
         }
     }
@@ -22,6 +24,7 @@ pub mod gallery {
             Self {
                 drawing_vec: self.drawing_vec.clone(),
                 query_settings: self.query_settings.clone(),
+                painter_dim: self.painter_dim.clone(),
             }
         }
     }
@@ -54,12 +57,27 @@ pub mod gallery {
                             db_query(self.query_settings[0].clone(),
                                      self.query_settings[1].clone(),
                                      self.query_settings[2].clone());
+                        /*.iter_mut()
+                        .map(|item|
+                                 item.node=item
+                                    .node
+                                    .iter_mut()
+                                    .map(|coord| *coord * self.painter_dim)
+                                    .collect::<Vec<_>>())
+                        .collect::<Vec<_>>();*/ //this is left here for later analysis of why it's not working this way
+                        for item in self.drawing_vec.iter_mut() {
+                            item.node = item
+                                .node
+                                .iter_mut()
+                                .map(|coord| *coord * self.painter_dim / 300.0)
+                                .collect::<Vec<_>>();
+                        }
                     }
                 })
             });
             ui.horizontal_wrapped(|ui| {
-                for mut item in self.drawing_vec.iter() {
-                    DrawingShapes::ui_canvas(&mut item.clone(), ui)
+                for item in self.drawing_vec.iter_mut() {
+                    DrawingShapes::ui_canvas(&mut item.clone(), ui, self.painter_dim)
                 }
             });
         }

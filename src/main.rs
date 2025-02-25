@@ -34,7 +34,7 @@ impl eframe::App for DrawingShapes {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             self.ui_controls(ui);
-            self.ui_canvas(ui);
+            self.ui_canvas(ui, 300.0);
             self.ui_io(ui);
         });
     }

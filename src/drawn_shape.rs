@@ -8,6 +8,7 @@ pub(crate) mod drawn_shape_mod {
     use eframe::emath::{Pos2, Vec2};
     use eframe::epaint::{Rect, Shape, Stroke, PathShape};
     use egui::{Color32, Grid, Sense};
+    use crate::painter_db;
     use crate::painter_io::file_io::IO;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -144,6 +145,10 @@ pub(crate) mod drawn_shape_mod {
                 }
                 if ui.button("Load").clicked() && named {
                     IO::load(self);
+                }
+                if ui.button("Upload to database").clicked() && named {
+                    if self.author.is_empty() { self.author = "N/A".to_string() }
+                    painter_db::painter_db::upload_file(self.clone())
                 }
             });
             ui.label(&self.io_status);

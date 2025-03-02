@@ -32,7 +32,9 @@ pub mod painter_db {
             .database("egui_art")
             .collection::<DrawingShapes>("art")
             .find(doc! {
-                "$and": fill_query(id,author,date)
+                "$and": fill_query(
+                    id,author,date
+                )
             })
             .run()
             .expect("Query paniced")
@@ -42,11 +44,20 @@ pub mod painter_db {
             .map(|x| x.unwrap())
             .collect::<Vec<_>>()
     }
-    fn fill_query(id: String, author: String, date: String) -> Vec<Document> {
+    fn fill_query(id: String, author: String, creation_time: String) -> Vec<Document> {
         let mut and_vec = Vec::new();
         if !id.is_empty() { and_vec.push(doc! {"_id": id}) };
         if !author.is_empty() { and_vec.push(doc! {"author": author}) };
-        if !date.is_empty() { and_vec.push(doc! {"date": date}) };
+        if !creation_time.is_empty() { and_vec.push(doc! {"creation_time": creation_time}) };
         and_vec
+    }
+    pub fn upload_file(drawing: DrawingShapes) {
+        let client = set_client().unwrap();
+        client
+            .database("egui_art")
+            .collection::<DrawingShapes>("art")
+            .insert_one(drawing)
+            .run()
+            .expect("Insertion failed");
     }
 }
